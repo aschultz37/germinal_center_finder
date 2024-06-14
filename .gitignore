@@ -1,0 +1,15 @@
+.nextflow/
+L2-Section2/
+probability-maps/
+qc/
+quantification/
+raw/
+registration/
+segmentation/
+work/
+
+*.h5ad
+*.png
+*.tif
+
+*nextflow*

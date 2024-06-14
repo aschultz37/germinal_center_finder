@@ -1,0 +1,6 @@
+workflow:
+   start-at: registration
+   stop-at: quantification
+   segmentation-channel: 1
+options:
+   s3seg: --nucleiRegion localMax  --logSigma 3 60

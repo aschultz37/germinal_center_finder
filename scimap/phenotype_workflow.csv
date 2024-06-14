@@ -1,0 +1,5 @@
+,,B220,CD4,PNA
+all,B Cell,pos,,
+all,T Cell,,pos,
+all,TB Cell,allpos,allpos,
+B Cell,GC,allpos,,allpos
