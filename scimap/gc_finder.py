@@ -44,7 +44,8 @@ def cell_distribution(zdata, center_cell, invalid_cell_list, valid_cell_list, ra
    num_arcs = 8
    consecutive_arcs = 3
    validity_cutoff = 0.50
-   arcs = generate_arcs((zdata.obs.loc[center_cell, 'X_centroid'], zdata.obs.loc[center_cell, 'Y_centroid']), radius, num_arcs)
+   center = (zdata.obs.loc[center_cell, 'X_centroid'], zdata.obs.loc[center_cell, 'Y_centroid'])
+   arcs = generate_arcs(center, radius, num_arcs)
    arcs_invalid_counter = [0] * num_arcs
    arcs_valid_coutner = [0] * num_arcs
    # determine # invalid cells in each section
@@ -76,7 +77,7 @@ def cell_distribution(zdata, center_cell, invalid_cell_list, valid_cell_list, ra
 def cell_in_follicle(zdata, cell):
    # pick a radius within which to evaluate neighboring cells and cutoffs for follicle composition
    radius = 15
-   follice_cutoff_pct = 0.10
+   follicle_cutoff_pct = 0.10
    edge_cutoff_pct = 0.60
    # generate list of cells within radius of the cell of interest 
    neighborhood = list()
@@ -107,8 +108,9 @@ def cell_in_follicle(zdata, cell):
 # verify whether all GC cells in the anndata object are valid or not
 # returns modified anndata object
 def gc_finder(zdata):
+   wdata = zdata
    invalid_cells = list()
-   for index in zdata.obs.index:
-      if not cell_in_follicle(zdata, index):
+   for index in wdata.obs.index:
+      if not cell_in_follicle(wdata, index):
          invalid_cells.append(index)
-   return reclassify_cells(zdata, invalid_cells)
+   return reclassify_cells(wdata, invalid_cells)
