@@ -109,8 +109,10 @@ def cell_in_follicle(zdata, cell):
 # returns modified anndata object
 def gc_finder(zdata):
    wdata = zdata
+   gc_type_cell = ['GC']
    invalid_cells = list()
    for index in wdata.obs.index:
-      if not cell_in_follicle(wdata, index):
-         invalid_cells.append(index)
+      if wdata.obs.loc[index, 'phenotype'] in gc_type_cell:
+         if not cell_in_follicle(wdata, index):
+            invalid_cells.append(index)
    return reclassify_cells(wdata, invalid_cells)
