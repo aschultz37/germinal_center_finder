@@ -40,12 +40,36 @@ def check_within_arc(center, start_point, end_point, point_of_interest):
 
 # determines the distribution of cells in a list around a central cell within a given radius
 # returns ... something that represents that, TBD, maybe just a Boolean for if valid or not
-def cell_distribution(zdata, center_cell, invalid_cell_list, radius):
-   # break into 8 arcs
-   arcs = generate_arcs((zdata.obs.loc[center_cell, 'X_centroid'], zdata.obs.loc[center_cell, 'Y_centroid']), radius, 8)
-   # determine % invalid cells in each section
-   # if 3/8 that are primarily valid are continuous, it is OK, probably edge of GC
-   pass
+def cell_distribution(zdata, center_cell, invalid_cell_list, valid_cell_list, radius):
+   num_arcs = 8
+   consecutive_arcs = 3
+   validity_cutoff = 0.50
+   arcs = generate_arcs((zdata.obs.loc[center_cell, 'X_centroid'], zdata.obs.loc[center_cell, 'Y_centroid']), radius, num_arcs)
+   arcs_invalid_counter = [0] * num_arcs
+   arcs_valid_coutner = [0] * num_arcs
+   # determine # invalid cells in each section
+   for invalid_cell in invalid_cell_list:
+      cell_coords = (zdata.obs.loc[invalid_cell, 'X_centroid'], zdata.obs.loc[invalid_cell, 'Y_centroid'])
+      for i in range(0, num_arcs):
+         if check_within_arc(center, arcs[i], arcs[(i+1) % num_arcs], cell_coords):
+            arcs_invalid_counter[i] += 1
+   # determine # valid cells in each section
+   for valid_cell in valid_cell_list:
+      cell_coords = (zdata.obs.loc[valid_cell, 'X_centroid'], zdata.obs.loc[valid_cell, 'Y_centroid'])
+      for i in range(0, num_arcs):
+         if check_within_arc(center, arcs[i], arcs[(i+1) % num_arcs], cell_coords):
+            arcs_valid_counter[i] += 1
+   # determine % valid in each section
+   arcs_pct_valid = [arcs_valid_counter[i] / (arcs_valid_counter[i] + arcs_invalid_counter[i]) for i in range(0, num_arcs)]
+   # if certain number of consecutive arcs are primarily valid, it is OK, probably edge of a GC
+   arcs_valid_bool = [arcs_pct_valid[i] > validity_cutoff for i in range(0, num_arcs)]
+   for i in range(0, num_arcs):
+      consec_valid = 0
+      for j in range(i, i+consecutive_arcs):
+         consec_valid += arcs_valid_bool[i%num_arcs]
+      if consec_valid >= consecutive_arcs:
+         return True
+   return False
 
 # determine if individual GC cell is within a B cell follicle or not
 # returns True if in follice, False if not in follicle
@@ -75,9 +99,10 @@ def cell_in_follicle(zdata, cell):
       return False
    # if neighboring cells within the radius are not >40% GC cell, not valid - excludes "lines"
       # actually, this needs to check across what arcs the invalid cells are distributed
+   if not cell_distribution(zdata, cell, invalid_cells, valid_cells, radius):
+      return False
    # else it meets criteria and is a valid GC cell
-   else:
-      return True
+   return True
 
 # verify whether all GC cells in the anndata object are valid or not
 # returns modified anndata object
