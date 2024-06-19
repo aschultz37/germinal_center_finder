@@ -6,7 +6,7 @@ import math
 
 # change cell phenotypes based on list of cells
 # returns modified anndata object
-def reclassify_cells(zdata, cell_list, new_cell_type):
+def reclassify_cells(zdata: ad.AnnData, cell_list: list, new_cell_type: str) -> ad.AnnData:
    zdata.obs.phenotype = zdata.obs.phenotype.cat.add_categories(new_cell_type)
    for index in zdata.obs.index:
       if index in cell_list:
@@ -15,7 +15,7 @@ def reclassify_cells(zdata, cell_list, new_cell_type):
 
 # calculates the Euclidian distance between two cells
 # returns distance as a float
-def cell_distance(zdata, cell1, cell2):
+def cell_distance(zdata: ad.AnnData, cell1: str, cell2: str) -> float:
    cell1_x = zdata.obs.loc[cell1, 'X_centroid']
    cell1_y = zdata.obs.loc[cell1, 'Y_centroid']
    cell2_x = zdata.obs.loc[cell2, 'X_centroid']
@@ -24,7 +24,7 @@ def cell_distance(zdata, cell1, cell2):
 
 # generates points defining n equal arcs given a center point (x, y) tuple
 # returns a list of the points
-def generate_arcs(center, radius, num_arcs):
+def generate_arcs(center: tuple, radius: float, num_arcs: int) -> list:
    arcs = list()
    angles = list(math.radians(45)*i for i in range(0, num_arcs))
    for angle in angles:
@@ -35,13 +35,13 @@ def generate_arcs(center, radius, num_arcs):
 
 # checks if a point falls within the arc of a circle, estimated as a triangle polygon
 # returns True if within arc, False if not
-def check_within_arc(center, start_point, end_point, point_of_interest):
+def check_within_arc(center: ad.AnnData, start_point: tuple, end_point: tuple, point_of_interest: tuple) -> bool:
    triangle = Path([center, start_point, end_point])
    return triangle.contains_point(point_of_interest)
 
 # determines the distribution of cells in a list around a central cell within a given radius
 # returns ... something that represents that, TBD, maybe just a Boolean for if valid or not
-def cell_distribution(zdata, center_cell, invalid_cell_list, valid_cell_list, radius):
+def cell_distribution(zdata: ad.AnnData, center_cell: str, invalid_cell_list: list, valid_cell_list: list, radius: float) -> bool:
    num_arcs = 8
    consecutive_arcs = 3
    validity_cutoff = 0.50
@@ -79,7 +79,7 @@ def cell_distribution(zdata, center_cell, invalid_cell_list, valid_cell_list, ra
 
 # determine if individual GC cell is within a B cell follicle or not
 # returns True if in follice, False if not in follicle
-def cell_in_follicle(zdata, cell):
+def cell_in_follicle(zdata: ad.AnnData, cell: str) -> bool:
    # pick a radius within which to evaluate neighboring cells and cutoffs for follicle composition
    radius = 10
    follicle_cutoff_pct = 0.10
@@ -112,16 +112,16 @@ def cell_in_follicle(zdata, cell):
 
 # verify whether all GC cells in the anndata object are valid, changes phenotype if not
 # returns modified anndata object
-def gc_finder(zdata, new_cell_type):
+def gc_finder(zdata: ad.AnnData, new_cell_type: str) -> ad.AnnData:
    wdata = zdata.copy()
    gc_type_cell = ['GC']
    invalid_cells = list()
-   cycle_counter = 0                   #DEBUG
+   cycle_counter = 0                                                                   #DEBUG
    for index in wdata.obs.index:
-      if cycle_counter % 1000 == 0:    #DEBUG
-         print('On cell ' + str(cycle_counter) + " of " + str(len(wdata.obs.index))) #DEBUG
+      if cycle_counter % 1000 == 0:                                                    #DEBUG
+         print('On cell ' + str(cycle_counter) + " of " + str(len(wdata.obs.index)))   #DEBUG
       if wdata.obs.loc[index, 'phenotype'] in gc_type_cell:
          if not cell_in_follicle(wdata, index):
             invalid_cells.append(index)
-      cycle_counter += 1               #DEBUG
+      cycle_counter += 1                                                               #DEBUG
    return reclassify_cells(wdata, invalid_cells, new_cell_type)
