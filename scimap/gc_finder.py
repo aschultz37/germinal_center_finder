@@ -110,7 +110,7 @@ def cell_in_follicle(zdata, cell):
    # else it meets criteria and is a valid GC cell
    return True
 
-# verify whether all GC cells in the anndata object are valid or not
+# verify whether all GC cells in the anndata object are valid, changes phenotype if not
 # returns modified anndata object
 def gc_finder(zdata, new_cell_type):
    wdata = zdata
