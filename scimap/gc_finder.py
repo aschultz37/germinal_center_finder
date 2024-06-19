@@ -113,11 +113,15 @@ def cell_in_follicle(zdata, cell):
 # verify whether all GC cells in the anndata object are valid, changes phenotype if not
 # returns modified anndata object
 def gc_finder(zdata, new_cell_type):
-   wdata = zdata
+   wdata = zdata.copy()
    gc_type_cell = ['GC']
    invalid_cells = list()
+   cycle_counter = 0                   #DEBUG
    for index in wdata.obs.index:
+      if cycle_counter % 1000 == 0:    #DEBUG
+         print('On cell ' + str(cycle_counter) + " of " + str(len(wdata.obs.index))) #DEBUG
       if wdata.obs.loc[index, 'phenotype'] in gc_type_cell:
          if not cell_in_follicle(wdata, index):
             invalid_cells.append(index)
+      cycle_counter += 1               #DEBUG
    return reclassify_cells(wdata, invalid_cells, new_cell_type)
