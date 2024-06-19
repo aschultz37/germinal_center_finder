@@ -6,10 +6,11 @@ import math
 
 # change cell phenotypes based on list of cells
 # returns modified anndata object
-def reclassify_cells(zdata, cell_list):
+def reclassify_cells(zdata, cell_list, new_cell_type):
+   zdata.obs.phenotype = zdata.obs.phenotype.cat.add_categories(new_cell_type)
    for index in zdata.obs.index:
       if index in cell_list:
-         zdata.obs.loc[index, 'phenotype'] = 'False GC'
+         zdata.obs.iloc[index, 'phenotype'] = new_cell_type
    return zdata
 
 # calculates the Euclidian distance between two cells
@@ -47,7 +48,7 @@ def cell_distribution(zdata, center_cell, invalid_cell_list, valid_cell_list, ra
    center = (zdata.obs.loc[center_cell, 'X_centroid'], zdata.obs.loc[center_cell, 'Y_centroid'])
    arcs = generate_arcs(center, radius, num_arcs)
    arcs_invalid_counter = [0] * num_arcs
-   arcs_valid_coutner = [0] * num_arcs
+   arcs_valid_counter = [0] * num_arcs
    # determine # invalid cells in each section
    for invalid_cell in invalid_cell_list:
       cell_coords = (zdata.obs.loc[invalid_cell, 'X_centroid'], zdata.obs.loc[invalid_cell, 'Y_centroid'])
@@ -61,7 +62,11 @@ def cell_distribution(zdata, center_cell, invalid_cell_list, valid_cell_list, ra
          if check_within_arc(center, arcs[i], arcs[(i+1) % num_arcs], cell_coords):
             arcs_valid_counter[i] += 1
    # determine % valid in each section
-   arcs_pct_valid = [arcs_valid_counter[i] / (arcs_valid_counter[i] + arcs_invalid_counter[i]) for i in range(0, num_arcs)]
+   arcs_total_counter = [arcs_valid_counter[i] + arcs_invalid_counter[i] for i in range(0, num_arcs)]
+   for i in range(0, len(arcs_total_counter)):
+      if arcs_total_counter[i] == 0:
+         arcs_total_counter[i] = -1
+   arcs_pct_valid = [arcs_valid_counter[i] / arcs_total_counter[i] for i in range(0, num_arcs)]
    # if certain number of consecutive arcs are primarily valid, it is OK, probably edge of a GC
    arcs_valid_bool = [arcs_pct_valid[i] > validity_cutoff for i in range(0, num_arcs)]
    for i in range(0, num_arcs):
@@ -76,7 +81,7 @@ def cell_distribution(zdata, center_cell, invalid_cell_list, valid_cell_list, ra
 # returns True if in follice, False if not in follicle
 def cell_in_follicle(zdata, cell):
    # pick a radius within which to evaluate neighboring cells and cutoffs for follicle composition
-   radius = 15
+   radius = 10
    follicle_cutoff_pct = 0.10
    edge_cutoff_pct = 0.60
    # generate list of cells within radius of the cell of interest 
@@ -107,7 +112,7 @@ def cell_in_follicle(zdata, cell):
 
 # verify whether all GC cells in the anndata object are valid or not
 # returns modified anndata object
-def gc_finder(zdata):
+def gc_finder(zdata, new_cell_type):
    wdata = zdata
    gc_type_cell = ['GC']
    invalid_cells = list()
@@ -115,4 +120,4 @@ def gc_finder(zdata):
       if wdata.obs.loc[index, 'phenotype'] in gc_type_cell:
          if not cell_in_follicle(wdata, index):
             invalid_cells.append(index)
-   return reclassify_cells(wdata, invalid_cells)
+   return reclassify_cells(wdata, invalid_cells, new_cell_type)
