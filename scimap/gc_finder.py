@@ -3,6 +3,7 @@ import pandas as pd
 import anndata as ad
 from matplotlib.path import Path
 import math
+from datetime import datetime                #DEBUG
 
 # change cell phenotypes based on list of cells
 # returns modified anndata object
@@ -10,7 +11,7 @@ def reclassify_cells(zdata: ad.AnnData, cell_list: list, new_cell_type: str) -> 
    zdata.obs.phenotype = zdata.obs.phenotype.cat.add_categories(new_cell_type)
    for index in zdata.obs.index:
       if index in cell_list:
-         zdata.obs.iloc[index, 'phenotype'] = new_cell_type
+         zdata.obs.loc[index, 'phenotype'] = new_cell_type
    return zdata
 
 # calculates the Euclidian distance between two cells
@@ -79,14 +80,20 @@ def cell_distribution(zdata: ad.AnnData, center_cell: str, invalid_cell_list: li
 
 # determine if individual GC cell is within a B cell follicle or not
 # returns True if in follice, False if not in follicle
-def cell_in_follicle(zdata: ad.AnnData, cell: str) -> bool:
+def cell_in_follicle(zdata: ad.AnnData, radius: int, follicle_cutoff_pct: float, edge_cutoff_pct: float, cell: str) -> bool:
    # pick a radius within which to evaluate neighboring cells and cutoffs for follicle composition
-   radius = 10
-   follicle_cutoff_pct = 0.10
-   edge_cutoff_pct = 0.60
+   #radius = 15
+   #follicle_cutoff_pct = 0.20
+   #edge_cutoff_pct = 0.20
    # generate list of cells within radius of the cell of interest 
    neighborhood = list()
-   for index in zdata.obs.index:
+   # NOTE: redo this by first making a new col. of avg coord, sorting on it, then only checking cells that have avg coord w/in r of the center
+   #for index in zdata.obs.index:
+   #   if cell_distance(zdata, cell, index) <= radius:
+   #      neighborhood.append(index)
+   zdata.obs['avg_coord'] = zdata.obs[['X_centroid', 'Y_centroid']].mean(axis=1)
+   ac_within_range_list = zdata.obs.index[abs(zdata.obs['avg_coord'] - zdata.obs.loc[cell, 'avg_coord']) < (0.8 * radius)].tolist()
+   for index in ac_within_range_list:
       if cell_distance(zdata, cell, index) <= radius:
          neighborhood.append(index)
    # determine percentage of cells within radius that are not of valid type for GC definition
@@ -112,16 +119,16 @@ def cell_in_follicle(zdata: ad.AnnData, cell: str) -> bool:
 
 # verify whether all GC cells in the anndata object are valid, changes phenotype if not
 # returns modified anndata object
-def gc_finder(zdata: ad.AnnData, new_cell_type: str) -> ad.AnnData:
+def gc_finder(zdata: ad.AnnData, new_cell_type: str, follicle_cutoff_pct: float, edge_cutoff_pct:float, radius: int) -> ad.AnnData:
    wdata = zdata.copy()
    gc_type_cell = ['GC']
    invalid_cells = list()
    cycle_counter = 0                                                                   #DEBUG
    for index in wdata.obs.index:
-      if cycle_counter % 1000 == 0:                                                    #DEBUG
-         print('On cell ' + str(cycle_counter) + " of " + str(len(wdata.obs.index)))   #DEBUG
+      if cycle_counter % 5000 == 0:                                                    #DEBUG
+         print(str(datetime.now()) + ': On cell ' + str(cycle_counter) + " of " + str(len(wdata.obs.index)))   #DEBUG
       if wdata.obs.loc[index, 'phenotype'] in gc_type_cell:
-         if not cell_in_follicle(wdata, index):
+         if not cell_in_follicle(wdata, radius, follicle_cutoff_pct, edge_cutoff_pct, index):
             invalid_cells.append(index)
       cycle_counter += 1                                                               #DEBUG
    return reclassify_cells(wdata, invalid_cells, new_cell_type)
