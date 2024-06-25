@@ -31,10 +31,11 @@ adata.write('scimap/L2-Section2_phenotyped.h5ad')
 # Perform Spatial Clustering
 bdata = adata.copy()
 bdata = sm.tl.spatial_count(bdata)
-bdata = sm.tl.spatial_cluster(bdata, k=9)
+bdata = sm.tl.spatial_cluster(bdata, k=9)  # consider tuning KNN parameter k
 
 sm.pl.spatial_scatterPlot(bdata, colorBy='spatial_kmeans', figsize=(7,7), s=0.5, fontsize=5, fileName='scimap/spatial_kmeans.png')
 
 # Find GC ROIs
-## cluster 6 is GC visually
+## cluster 6 is GC visually, take subset of cells in that cluster
+## N.B. cluster number will likely change per sample
 gc_cluster = bdata.obs[bdata.obs['spatial_kmeans'] == '6']
