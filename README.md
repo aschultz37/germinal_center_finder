@@ -15,17 +15,17 @@ The relevant output will be in subdirectories such as `registration/`, `qc/s3seg
 - `quantification/` contains a .csv describing the morphology of each cell and the quantified amount of marker in each cell.
   
 # SCIMAP Setup
-Full documentatino available at: https://scimap.xyz/  
+Full documentation available at: https://scimap.xyz/  
   
 ## In Brief
 Set up a conda environment (such as by using Anaconda) called `scimap`.  
 Activate the environment and install the requires packages, which are specified in the installation instructions on the SCIMAP website.  
   
 # Running SCIMAP
-Relevant scripts are in the scimap/ directory in this repository.  
+Relevant scripts are in the `scimap/` directory in this repository.  
 Edit file paths as appropriate for your filesystem.  
-Some parameters might need to be changed. See comments in code for parameters when using gc_finder.py as well.  
-**Strongly recommend** using scimap_gc_finder_analysis.py instead of the separate `scimap_analysis.py` and `gc_finder.py`.  
+Some parameters might need to be changed. See comments in code for parameters when using `gc_finder.py` as well.  
+**Strongly recommend** using `scimap_gc_finder_analysis.py` instead of the separate `scimap_analysis.py` and `gc_finder.py`.  
 N.B. `phenotype_workflow.csv` is project-specific and needs to be edited for given markers and phenotypes of interest.  
 
 # Citations
