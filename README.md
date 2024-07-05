@@ -28,6 +28,10 @@ Some parameters might need to be changed. See comments in code for parameters wh
 **Strongly recommend** using `scimap_gc_finder_analysis.py` instead of the separate `scimap_analysis.py` and `gc_finder.py`.  
 N.B. `phenotype_workflow.csv` is project-specific and needs to be edited for given markers and phenotypes of interest.  
 
+# Manual Gating
+Manual gating of MCMICRO output can be accomplished using the Minerva Analysis tool.  
+See https://github.com/labsyspharm/minerva_analysis/wiki/Gating.  
+  
 # Citations
 ## MCMICRO
 Schapiro, D., Sokolov, A., Yapp, C. et al. MCMICRO: a scalable, modular image-processing pipeline for multiplexed tissue imaging. Nat Methods 19, 311–315 (2022). https://doi.org/10.1038/s41592-021-01308-y  
